@@ -50,6 +50,14 @@ TouchScreen ts = TouchScreen(XP,YP,XM,YM, 300);
 #define GreenYellow     0xAFE5      /* 173, 255,  47 */
 #define Pink            0xF81F
 
+uint16_t getColor(uint8_t red, uint8_t green, uint8_t blue)
+{
+  red   >>= 3;
+  green >>= 2;
+  blue  >>= 3;
+  return (red << 11) | (green << 5) | blue;
+}
+
 Adafruit_TFTLCD tft(LCD_CS, LCD_CD, LCD_WR, LCD_RD, LCD_RESET);
 
 
