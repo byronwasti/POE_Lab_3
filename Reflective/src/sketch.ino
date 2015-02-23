@@ -37,18 +37,18 @@ TouchScreen ts = TouchScreen(XP,YP,XM,YM, 300);
 #define MAGENTA         0xF81F
 #define YELLOW          0xFFE0
 #define WHITE           0xFFFF
-#define Navy            0x000F      /*   0,   0, 128 */
-#define DarkGreen       0x03E0      /*   0, 128,   0 */
-#define DarkCyan        0x03EF      /*   0, 128, 128 */
-#define Maroon          0x7800      /* 128,   0,   0 */
-#define Purple          0x780F      /* 128,   0, 128 */
-#define Olive           0x7BE0      /* 128, 128,   0 */
-#define LightGrey       0xC618      /* 192, 192, 192 */
-#define DarkGrey        0x7BEF      /* 128, 128, 128 */
-#define Yellow          0xFFE0      /* 255, 255,   0 */
-#define Orange          0xFD20      /* 255, 165,   0 */
-#define GreenYellow     0xAFE5      /* 173, 255,  47 */
-#define Pink            0xF81F
+#define NAVY            0x000F      /*   0,   0, 128 */
+#define DARKGREEN       0x03E0      /*   0, 128,   0 */
+#define DARKCYAN        0x03EF      /*   0, 128, 128 */
+#define MAROON          0x7800      /* 128,   0,   0 */
+#define PURPLE          0x780F      /* 128,   0, 128 */
+#define OLIVE           0x7BE0      /* 128, 128,   0 */
+#define LIGHTGREY       0xC618      /* 192, 192, 192 */
+#define DARKGREY        0x7BEF      /* 128, 128, 128 */
+#define YELLOW          0xFFE0      /* 255, 255,   0 */
+#define ORANGE          0xFD20      /* 255, 165,   0 */
+#define GREENYELLOW     0xAFE5      /* 173, 255,  47 */
+#define PINK            0xF81F
 
 uint16_t getColor(uint8_t red, uint8_t green, uint8_t blue)
 {
@@ -101,7 +101,12 @@ void setup(){
     }
 
     tft.begin(identifier);
-    tft.fillScreen(BLACK);
+
+    tft.setRotation(1);
+    tft.fillScreen(WHITE);
+    tft.setTextColor(WHITE); tft.setTextSize(8);
+    
+    drawScreen(0);
 }
 
 #define MINPRESSURE 1
@@ -109,11 +114,11 @@ void setup(){
 
 void loop(void){
     // Should set the screen to be horizontal
-    tft.setRotation(1);
     
-    testText();
+    //testText();
     //tft.drawCircle(100,100,50,RED);
 
+    /*    TOUCH SENSING
     TSPoint p = ts.getPoint();
     if (p.z > MINPRESSURE && p.z < MAXPRESSURE) {
         pinMode(XM, OUTPUT);
@@ -124,9 +129,59 @@ void loop(void){
         
         tft.fillCircle(y, x, 10,RED);
     }
+    */
+    delay(1000);
+}
+void drawScreen(int select){
+    int length_long = 216;
+    int length_short = 176;
+    int l1 = length_short, l2 = length_short,
+        l3 = length_short, l4 = length_short;
+
+    switch(select){
+        case 0: l1 = length_long; 
+                tft.fillRect(20,0,95,223, BLACK);
+                tft.fillCircle(63,58,60, BLACK);
+                break;
+        case 1: l2 = length_long; 
+                break;
+        case 2: l3 = length_long; 
+                break;
+        case 3: l4 = length_long; 
+                break;
+        default: break;
+    }
+    // 1
+    tft.fillRect(22, 0, 90, l1, getColor(255,153,85));
+    tft.fillCircle(63,58,55, getColor(128,0,0));
+    tft.setCursor(45,35);
+    tft.println("1");
+
+    // 2
+    tft.fillRect(135, 0, 90, l2, getColor(135,222,205));
+    tft.fillCircle(181, 58,55, getColor(0,170,136));
+    tft.setCursor(163,35);
+    tft.println("2");
+
+    // 3
+    tft.fillRect(259, 0, 90, l3, getColor(141,211,95));
+    tft.fillCircle(299, 58, 55, getColor(33,120,33));
+    tft.setCursor(281,35);
+    tft.println("3");
+
+    // 4
+    tft.fillRect(370, 0, 90, l4, getColor(153,85,255));
+    tft.fillCircle(417, 58, 55, getColor(68,0,85));
+    tft.setCursor(399,35);
+    tft.println("4");
+
+    // AUTO
+    tft.fillRect(0,234, 480, 76, BLACK);
+    tft.setCursor(160, 240);
+    tft.println("AUTO");
 }
 
-void testText(){
+void drawText(){
     //tft.fillScreen(BLACK);
     tft.setCursor(0, 0);
     tft.setTextColor(WHITE); tft.setTextSize(6);
@@ -134,12 +189,3 @@ void testText(){
     tft.println("Birthday");
     tft.println("Bram");
 }
-
-/*
-void Circle_Draw(uint8_t radius, uint16_t color, n){
-    int w = tft.width(), h = tft.height();
-    //x, y, r2 = radius * 2;
-    
-    tft.drawCircle(x, y, radius, color);
-}
-*/
