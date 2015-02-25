@@ -42,7 +42,7 @@
 #define Y_LOW       110
 #define Y_HIGH      0
 
-uint8_t selector = 4;
+uint8_t selector = 5;
 TouchScreen ts = TouchScreen(XP,YP,XM,YM, 300);
 Adafruit_TFTLCD tft(LCD_CS, LCD_CD, LCD_WR, LCD_RD, LCD_RESET);
 
@@ -106,8 +106,8 @@ void loop(void){
         pinMode(XM, OUTPUT);
         pinMode(YP, OUTPUT);
 
-        uint8_t y = map(p.x,TS_MINX,TS_MAXX,320,0);
-        uint8_t x = map(p.y,TS_MINY,TS_MAXY,0,480);
+        int y = map(p.x,TS_MINX,TS_MAXX,320,0);
+        int x = map(p.y,TS_MINY,TS_MAXY,0,480);
         
         if ( y < Y_LOW && y > Y_HIGH ){
             if ( x > 0 && x < 120 && selector != 0 ){
@@ -127,7 +127,7 @@ void loop(void){
                 Select(selector);
             }
         }
-        if ( y > 230 ){
+        if ( y > 230 && selector != 4 ){
             selector = 4;
             Select(selector);
         }
@@ -135,6 +135,8 @@ void loop(void){
 }
 void Select(uint8_t select){
     tft.fillRect(0, BOX_SHORT, 480, BOX_DIFF, WHITE);
+    tft.setTextColor(WHITE); tft.setCursor(160,240); tft.println("AUTO");
+
     switch(select){
         case 0: 
             tft.fillRect(23, BOX_SHORT, 80, BOX_DIFF, getColor(255,153,85));
@@ -147,6 +149,11 @@ void Select(uint8_t select){
             break;
         case 3: 
             tft.fillRect(377, BOX_SHORT, 80, BOX_DIFF, getColor(153,85,255));
+            break;
+        case 4: 
+            tft.setTextColor(getColor(255,255,0));
+            tft.setCursor(160, 240);
+            tft.println("AUTO");
             break;
         default: break;
     }
