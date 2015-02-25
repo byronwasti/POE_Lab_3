@@ -129,7 +129,7 @@ void loop(void){
         }
         if ( y > 230 ){
             selector = 4;
-            Select(4);
+            Select(selector);
         }
     }
 }
