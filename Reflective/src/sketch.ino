@@ -106,8 +106,8 @@ void loop(void){
         pinMode(XM, OUTPUT);
         pinMode(YP, OUTPUT);
 
-        int y = map(p.x,TS_MINX,TS_MAXX,320,0);
-        int x = map(p.y,TS_MINY,TS_MAXY,0,480);
+        uint16_t y = map(p.x,TS_MINX,TS_MAXX,320,0);
+        uint16_t x = map(p.y,TS_MINY,TS_MAXY,0,480);
         
         if ( y < Y_LOW && y > Y_HIGH ){
             if ( x > 0 && x < 120 && selector != 0 ){
