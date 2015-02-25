@@ -6,8 +6,12 @@
 
 #define LCD_CS A3
 #define LCD_CD A2
+/*
 #define LCD_WR A1
 #define LCD_RD A0
+*/
+#define LCD_WR 10
+#define LCD_RD 11
 
 #define LCD_RESET A4
 
@@ -20,14 +24,6 @@
 #define TS_MINY 120
 #define TS_MAXX 920
 #define TS_MAXY 940
-
-TouchScreen ts = TouchScreen(XP,YP,XM,YM, 300);
-/*
-#define LCD_CS 10
-#define LCD_CD 11
-#define LCD_WR 12
-#define LCD_RD 13
-*/
 
 #define BLACK           0x0000
 #define WHITE           0xFFFF
@@ -47,6 +43,8 @@ TouchScreen ts = TouchScreen(XP,YP,XM,YM, 300);
 #define Y_HIGH      0
 
 int selector = 4;
+TouchScreen ts = TouchScreen(XP,YP,XM,YM, 300);
+Adafruit_TFTLCD tft(LCD_CS, LCD_CD, LCD_WR, LCD_RD, LCD_RESET);
 
 uint16_t getColor(uint8_t red, uint8_t green, uint8_t blue)
 {
@@ -55,8 +53,6 @@ uint16_t getColor(uint8_t red, uint8_t green, uint8_t blue)
   blue  >>= 3;
   return (red << 11) | (green << 5) | blue;
 }
-
-Adafruit_TFTLCD tft(LCD_CS, LCD_CD, LCD_WR, LCD_RD, LCD_RESET);
 
 void setup(){
     Serial.begin(9600);
