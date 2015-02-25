@@ -42,7 +42,7 @@
 #define Y_LOW       110
 #define Y_HIGH      0
 
-int selector = 4;
+uint8_t selector = 4;
 TouchScreen ts = TouchScreen(XP,YP,XM,YM, 300);
 Adafruit_TFTLCD tft(LCD_CS, LCD_CD, LCD_WR, LCD_RD, LCD_RESET);
 
@@ -63,6 +63,7 @@ void setup(){
 
     tft.begin(identifier);
 
+    // Begins drawing the screen
     tft.setRotation(1);
     tft.fillScreen(WHITE);
     tft.setTextColor(WHITE); tft.setTextSize(8);
@@ -99,34 +100,31 @@ void setup(){
 
 
 void loop(void){
-    // Should set the screen to be horizontal
     
-    //testText();
-    //tft.drawCircle(100,100,50,RED);
     TSPoint p = ts.getPoint();
     if (p.z > MINPRESSURE && p.z < MAXPRESSURE) {
         pinMode(XM, OUTPUT);
         pinMode(YP, OUTPUT);
 
-        int y = map(p.x,TS_MINX,TS_MAXX,320,0);
-        int x = map(p.y,TS_MINY,TS_MAXY,0,480);
+        uint8_t y = map(p.x,TS_MINX,TS_MAXX,320,0);
+        uint8_t x = map(p.y,TS_MINY,TS_MAXY,0,480);
         
         if ( y < Y_LOW && y > Y_HIGH ){
             if ( x > 0 && x < 120 && selector != 0 ){
                 selector = 0;
-                Select(0);
+                Select(selector);
             }
             if ( x > 120 && x < 240 && selector != 1){
                 selector = 1;
-                Select(1);
+                Select(selector);
             }
             if (x > 240 && x < 360 && selector != 2){
                 selector = 2;
-                Select(2);
+                Select(selector);
             }
             if ( x > 360 && x < 480 && selector != 3){
                 selector = 3;
-                Select(3);
+                Select(selector);
             }
         }
         if ( y > 230 ){
@@ -135,7 +133,7 @@ void loop(void){
         }
     }
 }
-void Select(int select){
+void Select(uint8_t select){
     tft.fillRect(0, BOX_SHORT, 480, BOX_DIFF, WHITE);
     switch(select){
         case 0: 
