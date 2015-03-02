@@ -15,6 +15,10 @@
 #define YM 9
 #define XP 8
 
+// Pin settings for sensors
+#define REFLECT A1
+#define OPACITY A0
+
 // Touchscreen min/max x/y coordinates
 #define TS_MINX 150
 #define TS_MINY 120
@@ -108,6 +112,11 @@ void setup(){
 
     // Set up the Motor
     AFMS.begin();
+    myMotor->run(RELEASE);
+
+    // Setup sensor pins
+    pinMode(REFLECT, INPUT);
+    pinMode(OPACITY, INPUT);
 }
 
 
@@ -126,33 +135,37 @@ void loop(void){
         
         if ( y < Y_LOW && y > Y_HIGH ){
             if ( x > 0 && x < 120 && selector != 0 ){
+                getGet(selector+1, 1);
                 selector = 0;
-                Select(selector);
-                myMotor->run(FORWARD);
+                Screen_Select(selector);
             }
             if ( x > 120 && x < 240 && selector != 1){
+                getGet(selector+1, 2);
                 selector = 1;
-                Select(selector);
-                myMotor->run(BACKWARD);
+                Screen_Select(selector);
             }
             if (x > 240 && x < 360 && selector != 2){
+                getGet(selector+1, 3);
                 selector = 2;
-                Select(selector);
+                Screen_Select(selector);
             }
             if ( x > 360 && x < 480 && selector != 3){
+                getGet(selector+1, 4);
                 selector = 3;
-                Select(selector);
+                Screen_Select(selector);
             }
         }
         if ( y > 230 && selector != 4 ){
             selector = 4;
-            Select(selector);
+            Screen_Select(selector);
         }
     }
 }
 
 
-void Select(uint8_t select){
+// Change what the screen displays in terms of
+// which option is currently selected 
+void Screen_Select(uint8_t select){
 
     // Clear previous selection without redrawing everything
     tft.fillRect(0, BOX_SHORT, 480, BOX_DIFF, WHITE);
@@ -179,3 +192,61 @@ void Select(uint8_t select){
         default: break;
     }
 }
+
+
+void getGet(int pos, int desired){
+  boolean found = false;
+  int reflective;
+  int refPrev = 0;
+  int threshold = 750;
+
+  while (found == false){
+    if(pos - desired == -3 || pos - desired == 1){
+      moveMotor(2); //reverse
+    }
+    else if (pos == desired){
+      moveMotor(0); //stop
+      //Serial.print("aefkhgwqhfgrwrfgerhrhfwehrhfwejhrhrf");
+      found = true;
+    }
+    else{
+      moveMotor(1); //forward
+    }
+
+    //check if we're at the next position
+    reflective = analogRead(REFLECT);
+    Serial.print (reflective);
+    if (reflective <= threshold && refPrev > threshold){
+      pos ++;
+      pos = pos%4;
+      refPrev = reflective;
+    }
+    else{
+      refPrev = reflective;
+    }
+    Serial.print(",   ");
+    Serial.println (pos);
+  }
+}
+
+
+void moveMotor(int state){
+  int motorSpeed = 200;
+  if (state == 0){
+    myMotor->setSpeed(0);
+  }
+
+  if (state == 1){
+    myMotor->run(FORWARD);
+    myMotor->setSpeed(motorSpeed);
+    delay(10);
+  }
+
+  if (state == 2){
+    myMotor->run(BACKWARD);
+    myMotor->setSpeed(motorSpeed);
+    delay(10);
+  }
+}
+
+
