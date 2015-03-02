@@ -4,27 +4,24 @@
 #include <Adafruit_MotorShield.h>
 #include <TouchScreen.h>
 
+// Pin settings for Touchscreen
 #define LCD_CS A3
 #define LCD_CD A2
-/*
-#define LCD_WR A1
-#define LCD_RD A0
-*/
 #define LCD_WR 10
 #define LCD_RD 11
-
 #define LCD_RESET A4
-
 #define YP A3
 #define XM A2
 #define YM 9
 #define XP 8
 
+// Touchscreen min/max x/y coordinates
 #define TS_MINX 150
 #define TS_MINY 120
 #define TS_MAXX 920
 #define TS_MAXY 940
 
+// Colors! er... 
 #define BLACK           0x0000
 #define WHITE           0xFFFF
 
@@ -36,16 +33,27 @@
 #define MEASURE_H    55
 #define CIRCLE_H     60
 
+// Touchpad pressure min/max
 #define MINPRESSURE 1
 #define MAXPRESSURE 1000
 
+// Where to sense for "Auto" selection
 #define Y_LOW       110
 #define Y_HIGH      0
 
-uint8_t selector = 5;
+// Setting up touchscreen, LCD, and motorshield
 TouchScreen ts = TouchScreen(XP,YP,XM,YM, 300);
 Adafruit_TFTLCD tft(LCD_CS, LCD_CD, LCD_WR, LCD_RD, LCD_RESET);
+Adafruit_MotorShield AFMS = Adafruit_MotorShield();
 
+// Getting motor object
+Adafruit_DCMotor *myMotor = AFMS.getMotor(1);
+
+// Which option is currently selected, 5 is NULL
+uint8_t selector = 5;
+
+// Awesome function which turns RGB color
+// values into 16 bit values for the LCD
 uint16_t getColor(uint8_t red, uint8_t green, uint8_t blue)
 {
   red   >>= 3;
@@ -54,13 +62,14 @@ uint16_t getColor(uint8_t red, uint8_t green, uint8_t blue)
   return (red << 11) | (green << 5) | blue;
 }
 
+
 void setup(){
     Serial.begin(9600);
 
+    // Clear screen
     tft.reset();
 
     uint16_t identifier = tft.readID();
-
     tft.begin(identifier);
 
     // Begins drawing the screen
@@ -96,16 +105,22 @@ void setup(){
     tft.fillRect(0,230, 480, 75, BLACK);
     tft.setCursor(160, 240);
     tft.println("AUTO");
+
+    // Set up the Motor
+    AFMS.begin();
 }
 
 
 void loop(void){
-    
+    myMotor->setSpeed(1000);
+
+    // Get touch sensor
     TSPoint p = ts.getPoint();
     if (p.z > MINPRESSURE && p.z < MAXPRESSURE) {
         pinMode(XM, OUTPUT);
         pinMode(YP, OUTPUT);
 
+        // Screen is rotated, so remap X & Y coordinates
         uint16_t y = map(p.x,TS_MINX,TS_MAXX,320,0);
         uint16_t x = map(p.y,TS_MINY,TS_MAXY,0,480);
         
@@ -113,10 +128,12 @@ void loop(void){
             if ( x > 0 && x < 120 && selector != 0 ){
                 selector = 0;
                 Select(selector);
+                myMotor->run(FORWARD);
             }
             if ( x > 120 && x < 240 && selector != 1){
                 selector = 1;
                 Select(selector);
+                myMotor->run(BACKWARD);
             }
             if (x > 240 && x < 360 && selector != 2){
                 selector = 2;
@@ -133,7 +150,11 @@ void loop(void){
         }
     }
 }
+
+
 void Select(uint8_t select){
+
+    // Clear previous selection without redrawing everything
     tft.fillRect(0, BOX_SHORT, 480, BOX_DIFF, WHITE);
     tft.setTextColor(WHITE); tft.setCursor(160,240); tft.println("AUTO");
 
