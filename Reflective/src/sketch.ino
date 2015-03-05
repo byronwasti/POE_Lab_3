@@ -121,9 +121,11 @@ void setup(){
 
 
 void loop(void){
-    myMotor->setSpeed(1000);
+    //myMotor->setSpeed(1000);
 
+    //TakeMeasure();
     // Get touch sensor
+    //Serial.println(analogRead(REFLECT));
     TSPoint p = ts.getPoint();
     if (p.z > MINPRESSURE && p.z < MAXPRESSURE) {
         pinMode(XM, OUTPUT);
@@ -134,30 +136,43 @@ void loop(void){
         uint16_t x = map(p.y,TS_MINY,TS_MAXY,0,480);
         
         if ( y < Y_LOW && y > Y_HIGH ){
+            if (selector == 4) selector = 3;
             if ( x > 0 && x < 120 && selector != 0 ){
-                getGet(selector+1, 1);
+                Screen_Select(0);
+                getGet(selector, 0);
                 selector = 0;
-                Screen_Select(selector);
+                TakeMeasure(selector);
             }
             if ( x > 120 && x < 240 && selector != 1){
-                getGet(selector+1, 2);
+                Screen_Select(1);
+                getGet(selector, 1);
                 selector = 1;
-                Screen_Select(selector);
+                TakeMeasure(selector);
             }
             if (x > 240 && x < 360 && selector != 2){
-                getGet(selector+1, 3);
+                Screen_Select(2);
+                getGet(selector, 2);
                 selector = 2;
-                Screen_Select(selector);
+                TakeMeasure(selector);
             }
             if ( x > 360 && x < 480 && selector != 3){
-                getGet(selector+1, 4);
+                Screen_Select(3);
+                getGet(selector, 3);
                 selector = 3;
-                Screen_Select(selector);
+                TakeMeasure(selector);
             }
         }
         if ( y > 230 && selector != 4 ){
+            Screen_Select(4);
+            getGet(selector, 0);
+            TakeMeasure(0);
+            getGet(0, 1);
+            TakeMeasure(1);
+            getGet(1, 2);
+            TakeMeasure(2);
+            getGet(2, 3);
+            TakeMeasure(3);
             selector = 4;
-            Screen_Select(selector);
         }
     }
 }
@@ -169,8 +184,8 @@ void Screen_Select(uint8_t select){
 
     // Clear previous selection without redrawing everything
     tft.fillRect(0, BOX_SHORT, 480, BOX_DIFF, WHITE);
-    tft.setTextColor(WHITE); tft.setCursor(160,240); tft.println("AUTO");
-
+    tft.setTextSize(8); tft.setTextColor(WHITE); tft.setCursor(160,240); tft.println("AUTO");
+    //Serial.println(analogRead(REFLECT));
     switch(select){
         case 0: 
             tft.fillRect(23, BOX_SHORT, 80, BOX_DIFF, getColor(255,153,85));
@@ -185,7 +200,7 @@ void Screen_Select(uint8_t select){
             tft.fillRect(377, BOX_SHORT, 80, BOX_DIFF, getColor(153,85,255));
             break;
         case 4: 
-            tft.setTextColor(getColor(255,255,0));
+            tft.setTextSize(8); tft.setTextColor(getColor(255,255,0));
             tft.setCursor(160, 240);
             tft.println("AUTO");
             break;
@@ -193,39 +208,59 @@ void Screen_Select(uint8_t select){
     }
 }
 
+void TakeMeasure( uint8_t select ){
+    tft.setTextSize(4); tft.setTextColor(WHITE); 
+
+    switch(select){
+        case 0: tft.setCursor(30,NUMB_H + 100);
+            tft.fillRect(23, BOX_SHORT-BOX_DIFF-10, 80, BOX_DIFF, getColor(255,153,85));
+            break;
+        case 1: tft.setCursor(145,NUMB_H + 100); 
+            tft.fillRect(141, BOX_SHORT-BOX_DIFF-10, 80, BOX_DIFF, getColor(135,222,205));
+            break;
+        case 2: tft.setCursor(265,NUMB_H + 100);
+            tft.fillRect(259, BOX_SHORT-BOX_DIFF-10, 80, BOX_DIFF, getColor(141,211,95));
+            break;
+        case 3: tft.setCursor(380,NUMB_H + 100); 
+            tft.fillRect(377, BOX_SHORT-BOX_DIFF-10, 80, BOX_DIFF, getColor(153,85,255));
+            break;
+    }
+    tft.println(analogRead(OPACITY));
+}
+
 
 void getGet(int pos, int desired){
   boolean found = false;
   int reflective;
   int refPrev = 0;
-  int threshold = 750;
+  int threshold = 200;
+  int direc = 0;
 
   while (found == false){
     if(pos - desired == -3 || pos - desired == 1){
-      moveMotor(2); //reverse
+      direc = -1;
+      moveMotor(-1); //reverse
     }
     else if (pos == desired){
       moveMotor(0); //stop
-      //Serial.print("aefkhgwqhfgrwrfgerhrhfwehrhfwejhrhrf");
       found = true;
     }
     else{
+      direc = 1;
       moveMotor(1); //forward
     }
 
     //check if we're at the next position
     reflective = analogRead(REFLECT);
-    Serial.print (reflective);
+
     if (reflective <= threshold && refPrev > threshold){
-      pos ++;
+      pos += direc;
       pos = pos%4;
       refPrev = reflective;
     }
     else{
       refPrev = reflective;
     }
-    Serial.print(",   ");
-    Serial.println (pos);
   }
 }
 
@@ -242,7 +277,7 @@ void moveMotor(int state){
     delay(10);
   }
 
-  if (state == 2){
+  if (state == -1){
     myMotor->run(BACKWARD);
     myMotor->setSpeed(motorSpeed);
     delay(10);
