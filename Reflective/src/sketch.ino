@@ -121,11 +121,6 @@ void setup(){
 
 
 void loop(void){
-    //myMotor->setSpeed(1000);
-
-    //TakeMeasure();
-    // Get touch sensor
-    //Serial.println(analogRead(REFLECT));
     TSPoint p = ts.getPoint();
     if (p.z > MINPRESSURE && p.z < MAXPRESSURE) {
         pinMode(XM, OUTPUT);
@@ -135,13 +130,15 @@ void loop(void){
         uint16_t y = map(p.x,TS_MINX,TS_MAXX,320,0);
         uint16_t x = map(p.y,TS_MINY,TS_MAXY,0,480);
         
+        //Manual mode is selected
         if ( y < Y_LOW && y > Y_HIGH ){
             if (selector == 4) selector = 3;
             if ( x > 0 && x < 120 && selector != 0 ){
-                Screen_Select(0);
-                getGet(selector, 0);
-                selector = 0;
-                TakeMeasure(selector);
+                // General idea here is to:
+                Screen_Select(0);      // update the screen
+                getGet(selector, 0);   // move to position
+                selector = 0;          // update current position
+                TakeMeasure(selector); // take measurement
             }
             if ( x > 120 && x < 240 && selector != 1){
                 Screen_Select(1);
@@ -162,6 +159,8 @@ void loop(void){
                 TakeMeasure(selector);
             }
         }
+
+        // Auto mode is selected
         if ( y > 230 && selector != 4 ){
             Screen_Select(4);
             getGet(selector, 0);
@@ -184,8 +183,9 @@ void Screen_Select(uint8_t select){
 
     // Clear previous selection without redrawing everything
     tft.fillRect(0, BOX_SHORT, 480, BOX_DIFF, WHITE);
-    tft.setTextSize(8); tft.setTextColor(WHITE); tft.setCursor(160,240); tft.println("AUTO");
-    //Serial.println(analogRead(REFLECT));
+    tft.setTextSize(8); tft.setTextColor(WHITE);
+    tft.setCursor(160,240); tft.println("AUTO");
+
     switch(select){
         case 0: 
             tft.fillRect(23, BOX_SHORT, 80, BOX_DIFF, getColor(255,153,85));
@@ -211,6 +211,8 @@ void Screen_Select(uint8_t select){
 void TakeMeasure( uint8_t select ){
     tft.setTextSize(4); tft.setTextColor(WHITE); 
 
+    // This is necessary to avoid drawing over itself
+    // Essentially erases previous writes
     switch(select){
         case 0: tft.setCursor(30,NUMB_H + 100);
             tft.fillRect(23, BOX_SHORT-BOX_DIFF-10, 80, BOX_DIFF, getColor(255,153,85));
@@ -229,6 +231,8 @@ void TakeMeasure( uint8_t select ){
 }
 
 
+// Out motor control function
+// Goes to position desired
 void getGet(int pos, int desired){
   boolean found = false;
   int reflective;
@@ -237,6 +241,9 @@ void getGet(int pos, int desired){
   int direc = 0;
 
   while (found == false){
+
+    // Check to see if it is quicker to go reverse 
+    // one petri rather than forward 3
     if(pos - desired == -3 || pos - desired == 1){
       direc = -1;
       moveMotor(-1); //reverse
@@ -253,6 +260,8 @@ void getGet(int pos, int desired){
     //check if we're at the next position
     reflective = analogRead(REFLECT);
 
+    // Make sure to not update itself on the same
+    // white patch, otherwise update position
     if (reflective <= threshold && refPrev > threshold){
       pos += direc;
       pos = pos%4;
@@ -265,6 +274,7 @@ void getGet(int pos, int desired){
 }
 
 
+// Making life easier via functions
 void moveMotor(int state){
   int motorSpeed = 200;
   if (state == 0){
